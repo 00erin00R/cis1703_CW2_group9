@@ -1,0 +1,27 @@
+[
+  {
+    "type": "product",
+    "id": 1,
+    "name": "Milk",
+    "price": 2.5,
+    "quantity": 10
+  },
+  {
+    "type": "perishable",
+    "id": 2,
+    "name": "Yogurt",
+    "price": 1.2,
+    "quantity": 3,
+    "expiry_date": "2026-04-25",
+    "storage_temp": "4C"
+  },
+  {
+    "type": "electronic",
+    "id": 3,
+    "name": "Laptop",
+    "price": 800,
+    "quantity": 5,
+    "warranty_period": 24,
+    "power_usage": "65W"
+  }
+]
