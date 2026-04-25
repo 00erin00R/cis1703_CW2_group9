@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 import json
-from value import *
 
 def center_window(root, width, height):
     screen_width = root.winfo_screenwidth()
@@ -25,10 +24,10 @@ tk.Label(top_frame, text="Value: £0").pack(side="left", padx=20)
 menu_frame = tk.Frame(root, bg="lightgrey", width=150)
 menu_frame.pack(side="left", fill="y")
 menu_frame.pack_propagate(False)  
-Dash = tk.Button(menu_frame, text="Dashboard").pack(fill="x", pady=5)
-Add = tk.Button(menu_frame, text="Add Product").pack(fill="x", pady=5)
-Remove = tk.Button(menu_frame, text="Remove Product").pack(fill="x", pady=5)
-Alerts = tk.Button(menu_frame, text="Alerts").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Dashboard").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Add Product").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Remove Product").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Alerts").pack(fill="x", pady=5)
 
 content_frame = tk.Frame(root)
 content_frame.pack(side="right", expand=True, fill="both")
