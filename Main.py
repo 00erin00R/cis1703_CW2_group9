@@ -48,7 +48,6 @@ class Product:
                 data["quantity"]
             )
 
-
 class PerishableProduct(Product):
     def __init__(self, product_id, name, price, quantity, expiry_date, storage_temp):
         super().__init__(product_id, name, price, quantity)
@@ -61,7 +60,6 @@ class PerishableProduct(Product):
         data["expiry_date"] = self.expiry_date
         data["storage_temp"] = self.storage_temp
         return data
-
 
 class ElectronicProduct(Product):
     def __init__(self, product_id, name, price, quantity, warranty_period, power_usage):
@@ -76,7 +74,6 @@ class ElectronicProduct(Product):
         data["power_usage"] = self.power_usage
         return data
 
-
 # to manage the inventory 
 
 class Inventory:
@@ -88,7 +85,13 @@ class Inventory:
             with open(file, "r") as f:
                 data = json.load(f)
                 self.products = [Product.from_dict(p) for p in data]
-        except:
+        except FileNotFoundError:
+            # create empty file if it doesn't exist
+            with open(file, "w") as f:
+                json.dump([], f)
+            self.products = []
+        except Exception as e:
+            print("Error loading JSON:", e)
             self.products = []
 
     def save_data(self, file="data.json"):
@@ -100,7 +103,6 @@ class Inventory:
 
     def remove_product(self, pid):
         self.products = [p for p in self.products if p.product_id != pid]
-
 
 # for basic page structure 
 
@@ -150,7 +152,6 @@ class App(tk.Tk):
         frame = self.frames[page]
         frame.refresh()
         frame.tkraise()
-
 
 #dashboard page for test 
 
@@ -205,7 +206,6 @@ class Dashboard(tk.Frame):
     def refresh(self):
         total = len(self.app.inventory.products)
         self.info.config(text=f"Total Items: {total}")
-
 
 class AddRemovePage(tk.Frame):
     def __init__(self, parent, app):
@@ -403,6 +403,36 @@ class Search(tk.Frame):
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
+
+        tk.Label(self, text="Search Products", font=("Arial", 16)).pack(pady=10)
+
+            # Search input
+        self.search_entry = tk.Entry(self)
+        self.search_entry.pack(pady=5)
+
+        tk.Button(self, text="Search", command=self.perform_search).pack(pady=5)
+
+        # Results list
+        self.listbox = tk.Listbox(self)
+        self.listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def refresh(self):
+        self.listbox.delete(0, tk.END)
+
+    def perform_search(self):
+        query = self.search_entry.get().lower()
+        self.listbox.delete(0, tk.END)
+
+        for p in self.app.inventory.products:
+            # Search by ID or Name
+            if query in p.product_id.lower() or query in p.name.lower():
+                self.listbox.insert(
+                    tk.END,
+                    f"{p.product_id} - {p.name} (£{p.price}, Qty: {p.quantity})"
+                )
+
+        if self.listbox.size() == 0:
+            self.listbox.insert(tk.END, "No results found")    
 
 class ViewData(tk.Frame):
     def __init__(self, parent, app):

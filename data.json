@@ -1,0 +1,18 @@
+[
+    {
+        "type": "Product",
+        "product_id": "1",
+        "name": "Item A",
+        "price": 12.0,
+        "quantity": 5
+    },
+    {
+        "type": "Perishable",
+        "product_id": "2",
+        "name": "Milk",
+        "price": 2.5,
+        "quantity": 10,
+        "expiry_date": "2026-05-01",
+        "storage_temp": "4C"
+    }
+]
