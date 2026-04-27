@@ -121,7 +121,7 @@ class App(tk.Tk):
 
         self.frames = {}
 
-        for F in (Dashboard, AddRemovePage, ViewData, Update):
+        for F in (Dashboard, AddRemovePage, Update, Search, ViewData, Alert):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.place(relwidth=1, relheight=1)
@@ -399,6 +399,11 @@ class Update(tk.Frame):
         except IndexError:
             messagebox.showerror("Error", "Please select an item")
 
+class Search(tk.Frame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+        self.app = app
+
 class ViewData(tk.Frame):
     def __init__(self, parent, app):
         super().__init__(parent)
@@ -456,6 +461,11 @@ class ViewData(tk.Frame):
                 ptype,
                 extra
             ))
+
+class Alert(tk.Frame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+        self.app = app
 
 # start page
 
