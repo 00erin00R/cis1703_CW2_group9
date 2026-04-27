@@ -1,7 +1,100 @@
 import tkinter as tk
 from tkinter import ttk
 import json
-from value import *
+
+class Product:
+    def __init__(self, product_id, name, price, quantity):
+        self.product_id = product_id
+        self.name = name
+        self.price = price
+        self.quantity = quantity
+
+    def to_dict(self):
+        return {
+            "type": "Product",
+            "product_id": self.product_id,
+            "name": self.name,
+            "price": self.price,
+            "quantity": self.quantity
+        }
+
+    @staticmethod
+    def from_dict(data):
+        if data["type"] == "Perishable":
+            return PerishableProduct(
+                data["product_id"],
+                data["name"],
+                data["price"],
+                data["quantity"],
+                data.get("expiry_date", ""),
+                data.get("storage_temp", "")
+            )
+        elif data["type"] == "Electronic":
+            return ElectronicProduct(
+                data["product_id"],
+                data["name"],
+                data["price"],
+                data["quantity"],
+                data.get("warranty_period", ""),
+                data.get("power_usage", "")
+            )
+        else:
+            return Product(
+                data["product_id"],
+                data["name"],
+                data["price"],
+                data["quantity"]
+            )
+
+
+class PerishableProduct(Product):
+    def __init__(self, product_id, name, price, quantity, expiry_date, storage_temp):
+        super().__init__(product_id, name, price, quantity)
+        self.expiry_date = expiry_date
+        self.storage_temp = storage_temp
+
+    def to_dict(self):
+        data = super().to_dict()
+        data["type"] = "Perishable"
+        data["expiry_date"] = self.expiry_date
+        data["storage_temp"] = self.storage_temp
+        return data
+    
+
+class ElectronicProduct(Product):
+    def __init__(self, product_id, name, price, quantity, warranty_period, power_usage):
+        super().__init__(product_id, name, price, quantity)
+        self.warranty_period = warranty_period
+        self.power_usage = power_usage
+
+    def to_dict(self):
+        data = super().to_dict()
+        data["type"] = "Electronic"
+        data["warranty_period"] = self.warranty_period
+        data["power_usage"] = self.power_usage
+        return data
+
+class Inventory:
+    def __init__(self):
+        self.products = []
+
+    def load_data(self, file="inventory.json"):
+        try:
+            with open(file, "r") as f:
+                data = json.load(f)
+                self.products = [Product.from_dict(p) for p in data]
+        except:
+            self.products = []
+
+    def save_data(self, file="inventory.json"):
+        with open(file, "w") as f:
+            json.dump([p.to_dict() for p in self.products], f, indent=4)
+
+    def add_product(self, product):
+        self.products.append(product)
+
+    def remove_product(self, pid):
+        self.products = [p for p in self.products if p.product_id != pid]
 
 def center_window(root, width, height):
     screen_width = root.winfo_screenwidth()
@@ -20,15 +113,16 @@ top_frame = tk.Frame(root, bg="white", height=50)
 top_frame.pack(side="top", fill="x")
 tk.Label(top_frame, text="Total: 0").pack(side="left", padx=20)
 tk.Label(top_frame, text="Low Stock: 0").pack(side="left", padx=20)
+tk.Label(top_frame, text="Expiring stock: ".pack(side="left", padx=20))
 tk.Label(top_frame, text="Value: £0").pack(side="left", padx=20)
 
 menu_frame = tk.Frame(root, bg="lightgrey", width=150)
 menu_frame.pack(side="left", fill="y")
 menu_frame.pack_propagate(False)  
-Dash = tk.Button(menu_frame, text="Dashboard").pack(fill="x", pady=5)
-Add = tk.Button(menu_frame, text="Add Product").pack(fill="x", pady=5)
-Remove = tk.Button(menu_frame, text="Remove Product").pack(fill="x", pady=5)
-Alerts = tk.Button(menu_frame, text="Alerts").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Dashboard").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Edit product").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="search").pack(fill="x", pady=5)
+tk.Button(menu_frame, text="Alerts").pack(fill="x", pady=5)
 
 content_frame = tk.Frame(root)
 content_frame.pack(side="right", expand=True, fill="both")

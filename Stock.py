@@ -121,7 +121,7 @@ class App(tk.Tk):
 
         self.frames = {}
 
-        for F in (Dashboard, AddRemovePage):
+        for F in (Dashboard, AddRemovePage, ViewData, Update):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.place(relwidth=1, relheight=1)
@@ -131,6 +131,18 @@ class App(tk.Tk):
 
         tk.Button(self.sidebar, text="Add / Remove",
                   command=lambda: self.show_frame(AddRemovePage)).pack(fill="x")
+        
+        tk.Button(self.sidebar, text="Update",
+                  command=lambda: self.show_frame(Update)).pack(fill="x")
+        
+        tk.Button(self.sidebar, text="Search",
+                  command=lambda: self.show_frame(Search)).pack(fill="x")
+        
+        tk.Button(self.sidebar, text="View data",
+                  command=lambda: self.show_frame(ViewData)).pack(fill="x")
+
+        tk.Button(self.sidebar, text="Alert",
+                  command=lambda: self.show_frame(Alert)).pack(fill="x")
 
         self.show_frame(Dashboard)
 
@@ -147,10 +159,48 @@ class Dashboard(tk.Frame):
         super().__init__(parent)
         self.app = app
 
-        tk.Label(self, text="Dashboard", font=("Arial", 18)).pack(pady=20)
-
         self.info = tk.Label(self, text="")
-        self.info.pack()
+
+        top_frame = tk.Frame(self)
+        top_frame.pack(side="top", fill="x")
+        tk.Label(top_frame, text="Total: 0").pack(side="left", padx=20)
+        tk.Label(top_frame, text="Low Stock: 0").pack(side="left", padx=20)
+        tk.Label(top_frame, text="Expiring stock: ").pack(side="left", padx=20)
+        tk.Label(top_frame, text="Value: £0").pack(side="left", padx=20)
+
+        menu_frame = tk.Frame(self)
+        menu_frame.pack(side="left", fill="y")
+        menu_frame.pack_propagate(False)  
+        tk.Button(menu_frame, text="Dashboard").pack(fill="x", pady=5)
+        tk.Button(menu_frame, text="Edit product").pack(fill="x", pady=5)
+        tk.Button(menu_frame, text="search").pack(fill="x", pady=5)
+        tk.Button(menu_frame, text="Alerts").pack(fill="x", pady=5)
+
+        content_frame = tk.Frame(self)
+        content_frame.pack(side="right", expand=True, fill="both")
+        cards_frame = tk.Frame(content_frame)
+        cards_frame.pack(expand=True, fill="both")
+
+        cards_frame.grid_rowconfigure((0,1), weight=1)
+        cards_frame.grid_columnconfigure((0,1), weight=1)
+
+        def create_card(parent, title, value):
+            frame = tk.Frame(parent, bg="white", bd=2, relief="ridge")
+
+            tk.Label(frame, text=title).pack(expand=True)
+            tk.Label(frame, text=value, font=("Arial", 18, "bold")).pack(expand=True)
+
+            return frame
+
+        card1 = create_card(cards_frame, "Total Items", "0")
+        card2 = create_card(cards_frame, "Low Stock", "0")
+        card3 = create_card(cards_frame, "Total Value", "£0")
+        card4 = create_card(cards_frame, "Expiring Soon", "0")
+
+        card1.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        card2.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        card3.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        card4.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
 
     def refresh(self):
         total = len(self.app.inventory.products)
@@ -287,6 +337,125 @@ class AddRemovePage(tk.Frame):
         messagebox.showinfo("Removed", "Item Removed")
         self.refresh()
 
+class Update(tk.Frame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+        self.app = app
+
+        tk.Label(self, text="Update Product", font=("Arial", 16)).pack(pady=10)
+
+        # List of products
+        self.listbox = tk.Listbox(self)
+        self.listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+        tk.Button(self, text="Edit Selected", command=self.update_product).pack(pady=5)
+
+    def refresh(self):
+        self.listbox.delete(0, tk.END)
+        for p in self.app.inventory.products:
+            self.listbox.insert(tk.END, f"{p.product_id} - {p.name}")
+
+    def update_product(self):
+        try:
+            selected_index = self.listbox.curselection()[0]
+            product = self.app.inventory.products[selected_index]
+
+            update_window = tk.Toplevel(self)
+            update_window.title("Update Product")
+            update_window.geometry("300x250")
+
+            tk.Label(update_window, text="Name").pack()
+            name_entry = tk.Entry(update_window)
+            name_entry.insert(0, product.name)
+            name_entry.pack()
+
+            tk.Label(update_window, text="Price").pack()
+            price_entry = tk.Entry(update_window)
+            price_entry.insert(0, str(product.price))
+            price_entry.pack()
+
+            tk.Label(update_window, text="Quantity").pack()
+            quantity_entry = tk.Entry(update_window)
+            quantity_entry.insert(0, str(product.quantity))
+            quantity_entry.pack()
+
+            def save_update():
+                try:
+                    product.name = name_entry.get()
+                    product.price = float(price_entry.get())
+                    product.quantity = int(quantity_entry.get())
+
+                    self.app.inventory.save_data()
+                    self.refresh()
+
+                    messagebox.showinfo("Success", "Product Updated")
+                    update_window.destroy()
+
+                except:
+                    messagebox.showerror("Error", "Invalid Input")
+
+            tk.Button(update_window, text="Save", command=save_update).pack(pady=10)
+
+        except IndexError:
+            messagebox.showerror("Error", "Please select an item")
+
+class ViewData(tk.Frame):
+    def __init__(self, parent, app):
+        super().__init__(parent)
+        self.app = app
+
+        tk.Label(self, text="Inventory Data", font=("Arial", 16)).pack(pady=10)
+
+        # Table
+        columns = ("ID", "Name", "Price", "Quantity", "Type")
+        self.tree = ttk.Treeview(self, columns=columns, show="headings")
+
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, anchor="center")
+
+        self.tree.pack(expand=True, fill="both", padx=10, pady=10)
+        self.tree.heading("ID", text="ID")
+        self.tree.column("ID", width=60, anchor="center", stretch=False)
+
+        self.tree.heading("Name", text="Name")
+        self.tree.column("Name", width=180, anchor="center")
+
+        self.tree.heading("Price", text="Price")
+        self.tree.column("Price", width=80, anchor="center")
+
+        self.tree.heading("Quantity", text="Quantity")
+        self.tree.column("Quantity", width=80, anchor="center")
+
+        self.tree.heading("Type", text="Type")
+        self.tree.column("Type", width=100, anchor="center")
+
+    def refresh(self):
+        # Clear table
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        # Insert updated data
+        for p in self.app.inventory.products:
+            ptype = "Product"
+            extra = ""
+
+            if isinstance(p, PerishableProduct):
+                ptype = "Perishable"
+                extra = f"Expiry: {p.expiry_date}, Temp: {p.storage_temp}"
+
+            elif isinstance(p, ElectronicProduct):
+                ptype = "Electronic"
+                extra = f"Warranty: {p.warranty_period}, Power: {p.power_usage}"
+
+            self.tree.insert("", "end", values=(
+                p.product_id,
+                p.name,
+                f"£{p.price:.2f}",
+                p.quantity,
+                ptype,
+                extra
+            ))
 
 # start page
 
