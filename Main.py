@@ -186,27 +186,56 @@ class Dashboard(tk.Frame):
         cards_frame.grid_rowconfigure((0,1), weight=1)
         cards_frame.grid_columnconfigure((0,1), weight=1)
 
-        def create_card(parent, title, value):
+        def create_card(parent, title):
             frame = tk.Frame(parent, bg="white", bd=2, relief="ridge")
 
             tk.Label(frame, text=title).pack(expand=True)
-            tk.Label(frame, text=value, font=("Arial", 18, "bold")).pack(expand=True)
+            value_label = tk.Label(frame, text="0", font=("Arial", 18, "bold"))
+            value_label.pack(expand=True)
 
-            return frame
+            return frame, value_label
 
-        card1 = create_card(cards_frame, "Total Items", "0")
-        card2 = create_card(cards_frame, "Low Stock", "0")
-        card3 = create_card(cards_frame, "Total Value", "£0")
-        card4 = create_card(cards_frame, "Expiring Soon", "0")
 
-        card1.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        card2.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
-        card3.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-        card4.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        self.card1, self.total_label = create_card(cards_frame, "Total Items")
+        self.card2, self.low_stock_label = create_card(cards_frame, "Low Stock")
+        self.card3, self.value_label = create_card(cards_frame, "Total Value")
+        self.card4, self.expiry_label = create_card(cards_frame, "Expiring Soon")
+
+
+        self.card1.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        self.card2.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        self.card3.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        self.card4.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
 
     def refresh(self):
-        total = len(self.app.inventory.products)
-        self.info.config(text=f"Total Items: {total}")
+        products = self.app.inventory.products
+
+        total_items = len(products)
+
+        low_stock_threshold = 5
+        low_stock = sum(1 for p in products if p.quantity <= low_stock_threshold)
+
+        total_value = sum(p.price * p.quantity for p in products)
+
+        today = datetime.date.today()
+        expiring_soon = 0
+
+        for p in products:
+            if isinstance(p, PerishableProduct) and p.expiry_date:
+                try:
+                    expiry = datetime.datetime.strptime(p.expiry_date, "%Y-%m-%d").date()
+                    days_left = (expiry - today).days
+
+                    if days_left <= 3:
+                        expiring_soon += 1
+                except:
+                    pass
+
+        # Update UI
+        self.total_label.config(text=str(total_items))
+        self.low_stock_label.config(text=str(low_stock))
+        self.value_label.config(text=f"£{total_value:.2f}")
+        self.expiry_label.config(text=str(expiring_soon))
 
 class AddRemovePage(tk.Frame):
     def __init__(self, parent, app):
@@ -514,7 +543,7 @@ class Alert(tk.Frame):
         self.listbox.delete(0, tk.END)
 
         today = datetime.date.today()
-        low_stock_threshold = 5  # you can change this
+        low_stock_threshold = 5  
 
         for p in self.app.inventory.products:
 

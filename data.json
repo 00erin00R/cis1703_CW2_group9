@@ -34,5 +34,14 @@
         "quantity": 10,
         "expiry_date": "2026-04-28",
         "storage_temp": ""
+    },
+    {
+        "type": "Perishable",
+        "product_id": "1",
+        "name": "test",
+        "price": 5.0,
+        "quantity": 5,
+        "expiry_date": "26-03-25",
+        "storage_temp": ""
     }
 ]
