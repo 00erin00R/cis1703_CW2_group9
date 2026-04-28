@@ -1,18 +1,38 @@
 [
     {
-        "type": "Product",
-        "product_id": "1",
-        "name": "Item A",
-        "price": 12.0,
-        "quantity": 5
+        "type": "Perishable",
+        "product_id": "2",
+        "name": "sweets",
+        "price": 5.0,
+        "quantity": 50,
+        "expiry_date": "2026-05-01",
+        "storage_temp": "4C"
     },
     {
         "type": "Perishable",
-        "product_id": "2",
-        "name": "Milk",
-        "price": 2.5,
+        "product_id": "3",
+        "name": "crisps",
+        "price": 2.0,
         "quantity": 10,
-        "expiry_date": "2026-05-01",
-        "storage_temp": "4C"
+        "expiry_date": "2026-04-30",
+        "storage_temp": ""
+    },
+    {
+        "type": "Electronic",
+        "product_id": "4",
+        "name": "laptop",
+        "price": 500.0,
+        "quantity": 10,
+        "warranty_period": "5",
+        "power_usage": ""
+    },
+    {
+        "type": "Perishable",
+        "product_id": "5",
+        "name": "test",
+        "price": 5.0,
+        "quantity": 10,
+        "expiry_date": "2026-04-28",
+        "storage_temp": ""
     }
 ]

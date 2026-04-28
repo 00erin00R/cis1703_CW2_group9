@@ -536,6 +536,11 @@ class Alert(tk.Frame):
                             tk.END,
                             f" EXPIRING SOON: {p.name} (in {days_left} days)"
                         )
+                    elif days_left <1:
+                        self.listbox.insert(
+                            tk.END,
+                            f"EXPIRED: {p.name} (in{days_left} days)"
+                        )
 
                 except:
                     self.listbox.insert(
