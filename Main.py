@@ -1,4 +1,5 @@
 import json
+import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -496,6 +497,55 @@ class Alert(tk.Frame):
     def __init__(self, parent, app):
         super().__init__(parent)
         self.app = app
+
+        tk.Label(self, text="Alerts", font=("Arial", 16)).pack(pady=10)
+
+        # Buttons
+        btn_frame = tk.Frame(self)
+        btn_frame.pack(pady=5)
+
+        tk.Button(btn_frame, text="Refresh Alerts", command=self.refresh).pack()
+
+        # Alert list
+        self.listbox = tk.Listbox(self)
+        self.listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def refresh(self):
+        self.listbox.delete(0, tk.END)
+
+        today = datetime.date.today()
+        low_stock_threshold = 5  # you can change this
+
+        for p in self.app.inventory.products:
+
+            # LOW STOCK ALERT
+            if p.quantity <= low_stock_threshold:
+                self.listbox.insert(
+                    tk.END,
+                    f" LOW STOCK: {p.name} (Qty: {p.quantity})"
+                )
+
+            # EXPIRY ALERT (only for Perishable)
+            if isinstance(p, PerishableProduct) and p.expiry_date:
+                try:
+                    expiry = datetime.datetime.strptime(p.expiry_date, "%Y-%m-%d").date()
+                    days_left = (expiry - today).days
+
+                    if days_left <= 3:
+                        self.listbox.insert(
+                            tk.END,
+                            f" EXPIRING SOON: {p.name} (in {days_left} days)"
+                        )
+
+                except:
+                    self.listbox.insert(
+                        tk.END,
+                        f" Invalid expiry date for {p.name}"
+                    )
+
+        # If no alerts
+        if self.listbox.size() == 0:
+            self.listbox.insert(tk.END, "No alerts ")
 
 # start page
 
